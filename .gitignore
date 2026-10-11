@@ -23,3 +23,8 @@ Thumbs.db
 
 secrets/
 credentials/
+# Mission-local public ceremony journal and transient JIT artifacts
+.p0b-ceremony-runtime/
+
+# Private development orchestration, exports and local publication audits
+.harness/

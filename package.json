@@ -1,0 +1,20 @@
+{
+  "name": "universal-dex",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/scenarios/*.test.mjs",
+    "demo": "node apps/api/demo-server.mjs",
+    "test:public": "node --test tests/scenarios/p0b-preparation.test.mjs tests/scenarios/p0b-boundaries.test.mjs",
+    "verify:demo": "node tools/publication-readiness/verify-public-demo.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0",
+    "@solana/web3.js": "1.99.0"
+  }
+}

@@ -1,0 +1,13 @@
+// Read-only browser: no wallet discovery, authorization, signing or sending.
+const el=id=>document.getElementById(id),line=(parent,label,value)=>{const p=document.createElement('p');p.textContent=label+': '+value;parent.append(p);};
+try{
+ const [view,readiness]=await Promise.all([fetch('/api/ceremony').then(async r=>{if(!r.ok)throw Error('CEREMONY_NOT_INITIALIZED_OR_UNVERIFIED');return r.json();}),fetch('/api/readiness').then(r=>r.json())]);
+ el('readiness').textContent='Preparation: '+readiness.status+' | review: '+(readiness.review??'PENDING')+' | overnight live effects: '+(readiness.liveEffects??0);
+ el('state').textContent=view.state+' | '+view.publicState+' | active stage: '+(view.activeStage??'NONE');
+ for(const s of view.stages){const li=document.createElement('li');line(li,s.key,s.status);line(li,'Chain',s.chain);line(li,'Recipient',s.recipient);line(li,'Amount (atomic USDC)',s.amountAtomic);line(li,'Native stage cap',s.nativeCap);el('stages').append(li);if(s.key==='BURN'){const watch=document.createElement('li');line(watch,'Circle attestation (read-only)',view.watch.status);line(watch,'Authority','No signing or sending');el('stages').append(watch);}}
+ const s=view.stages.find(s=>s.current),panel=el('current');
+ if(s){const h=document.createElement('h2');h.textContent=s.key+' | '+s.status;panel.append(h);line(panel,'Actor',s.actor);line(panel,'Chain',s.chain);line(panel,'Asset',s.prepared?.summary.asset??(s.key==='ATA'?'USDC ATA':view.sourceToken+' | '+view.destinationToken));line(panel,'Amount (atomic)',s.amountAtomic);line(panel,'Recipient',s.recipient);line(panel,'Native hard cap (lamports / wei)',s.nativeCap);if(s.prepared){line(panel,'Exact authorization maximum',s.prepared.nativeMaximumAtomic);line(panel,'Preparation expiry',s.prepared.validUntil);line(panel,'Prepared intent',s.prepared.intentHash.digest);}line(panel,'Protocol fee cap (atomic USDC)',view.feeCaps.protocolAtomic);line(panel,'Minimum destination (atomic USDC)',view.minimumDestinationAtomic);line(panel,'Human action',s.prepared?.summary.authorizes??s.reason);line(panel,'Excluded authority',s.prepared?.summary.excludes.join(', ')??'Every other stage; swap; sponsor spend; other intents');
+ const button=document.createElement('button');button.disabled=true;button.textContent='Exact stage authorization required | wallet ports disconnected';panel.append(button);
+ }else line(panel,'Completion','No active stage. Settlement does not authorize a swap.');
+ el('bindings').textContent=JSON.stringify(view,null,2);
+}catch(e){el('state').textContent=e.message;el('current').textContent='No effect action is available. Inspect the read-only resume command.';}
